@@ -12,8 +12,7 @@
   /* =========================================
      PHONG CÁCH CHUẨN AULAC
      ========================================= */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
+  * { margin: 0; padding: 0; box-sizing: border-box; }  
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: #ffffff;
@@ -145,12 +144,20 @@
     </div>
     
     <div class="grid grid-cols-2 gap-3 mt-2">
+        <div class="col-span-2 mb-2">
+            <label class="block text-xs font-bold text-blue-800 uppercase mb-1">Loại dầu</label>
+            <select id="loaiDau" class="calc-input cursor-pointer bg-blue-50 border-blue-300 text-blue-900 font-bold" style="font-size: 16px;">
+                <option value="DO" selected>Dầu DO 0.05%S</option>
+                <option value="FO">Dầu FO</option>
+            </select>
+        </div>
+
         <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Giá dầu (VNĐ/Lít)</label>
+            <label id="lblGiaDau" class="block text-xs font-bold text-slate-500 uppercase mb-1">Giá dầu (VNĐ/Lít)</label>
             <input type="text" id="giaDau" value="18.560" class="format-number calc-input">
         </div>
         <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tỷ trọng (MT/m³ @ OBS)</label>
+            <label id="lblTyTrong" class="block text-xs font-bold text-slate-500 uppercase mb-1">Tỷ trọng (MT/m³ @ OBS)</label>
             <input type="number" step="0.001" id="tyTrong" value="0.975" class="calc-input">
         </div>
         <div>
@@ -220,7 +227,7 @@
             <thead>
                 <tr>
                     <th>NHÀ CUNG CẤP</th>
-                    <th style="width: 120px;">DO 0.05%S<br><span style="font-size:11px;font-weight:normal">(VNĐ/Lít)</span></th>
+                    <th id="thGiaDau" style="width: 120px;">DO 0.05%S<br><span style="font-size:11px;font-weight:normal">(VNĐ/Lít)</span></th>
                     <th style="width: 120px;">PHỤ PHÍ VC<br><span style="font-size:11px;font-weight:normal">(VNĐ)</span></th>
                     <th style="width: 110px;">TRƯỚC THUẾ<br><span style="font-size:11px;font-weight:normal">(USD/MT)</span></th>
                     <th style="width: 110px;">SAU THUẾ<br><span style="font-size:11px;font-weight:normal">(USD/MT)</span></th>
@@ -301,7 +308,7 @@
                 data: [27795, 19036, 0],
                 backgroundColor: ['rgba(15, 118, 191, 0.85)', 'rgba(69, 190, 238, 0.85)', 'rgba(148, 163, 184, 0.4)'],
                 borderColor: ['#0F79BF', '#45BEEE', '#94a3b8'],
-                borderWidth: 1, borderRadius: 4, barThickness: 60
+                borderWidth: 1, borderRadius: 4, barThickness: 160
             }]
         },
         options: {
@@ -314,33 +321,78 @@
         }
     });
 
+    // --- XỬ LÝ SỰ KIỆN ĐỔI LOẠI DẦU ---
+    document.getElementById('loaiDau').addEventListener('change', function() {
+        const type = this.value;
+        const lblGiaDau = document.getElementById('lblGiaDau');
+        const lblTyTrong = document.getElementById('lblTyTrong');
+        const thGiaDau = document.getElementById('thGiaDau');
+        const tyTrongInput = document.getElementById('tyTrong');
+
+        if (type === 'DO') {
+            lblGiaDau.textContent = 'Giá dầu (VNĐ/Lít)';
+            lblTyTrong.textContent = 'Tỷ trọng (MT/m³ @ OBS)';
+            thGiaDau.innerHTML = 'DO 0.05%S<br><span style="font-size:11px;font-weight:normal">(VNĐ/Lít)</span>';
+            priceChart.data.datasets[0].label = 'Giá DO (VNĐ/Lít)';
+            
+            // Đặt lại tỷ trọng mẫu nếu đang là của FO
+            if(parseFloat(tyTrongInput.value) > 100) tyTrongInput.value = '0.975';
+        } else {
+            lblGiaDau.textContent = 'Giá dầu (VNĐ/kg)';
+            lblTyTrong.textContent = 'Tỷ trọng (kg/m³ @ OBS)';
+            thGiaDau.innerHTML = 'DẦU FO<br><span style="font-size:11px;font-weight:normal">(VNĐ/kg)</span>';
+            priceChart.data.datasets[0].label = 'Giá FO (VNĐ/kg)';
+            
+            // Đặt lại tỷ trọng mẫu nếu đang là của DO
+            if(parseFloat(tyTrongInput.value) < 2) tyTrongInput.value = '991.0';
+        }
+        
+        priceChart.update();
+        updateAll();
+    });
+
     // --- TÍNH TOÁN SAU THUẾ ---
-    function calcPriceUSDMT(vndPerLiter, transportFeeVnd) {
+    function calcPriceUSDMT(vndPrice, transportFeeVnd) {
+        const isFO = document.getElementById('loaiDau').value === 'FO';
         const tyTrong = parseFloat(document.getElementById('tyTrong').value) || 1;
         const khoiLuong = parseFloat(document.getElementById('khoiLuong').value) || 1;
         const tyGia = parseVND(document.getElementById('tyGia').value) || 1;
         const vatVanChuyen = parseFloat(document.getElementById('vatVanChuyen').value) / 100 || 0;
         
-        if (vndPerLiter === 0) return 0;
-        const heSoQuyDoiL2MT = 1000 / tyTrong;
-        const giaDauSauThueUSD = (vndPerLiter * heSoQuyDoiL2MT) / tyGia;
+        if (vndPrice === 0) return 0;
+        
+        let donGiaDauVND_MT;
+        if (isFO) {
+            donGiaDauVND_MT = vndPrice * 1000; // Đơn giá là VNĐ/kg, 1 MT = 1000kg
+        } else {
+            const heSoQuyDoiL2MT = 1000 / tyTrong;
+            donGiaDauVND_MT = vndPrice * heSoQuyDoiL2MT;
+        }
+
+        const giaDauSauThueUSD = donGiaDauVND_MT / tyGia;
         const phiVCSauThueUSD = (transportFeeVnd * (1 + vatVanChuyen) / khoiLuong) / tyGia;
         
         return giaDauSauThueUSD + phiVCSauThueUSD;
     }
 
     // --- TÍNH TOÁN TRƯỚC THUẾ ---
-    function calcPriceTruocThueUSDMT(vndPerLiter, transportFeeVnd) {
+    function calcPriceTruocThueUSDMT(vndPrice, transportFeeVnd) {
+        const isFO = document.getElementById('loaiDau').value === 'FO';
         const tyTrong = parseFloat(document.getElementById('tyTrong').value) || 1;
         const khoiLuong = parseFloat(document.getElementById('khoiLuong').value) || 1;
         const tyGia = parseVND(document.getElementById('tyGia').value) || 1;
         const vatDau = parseFloat(document.getElementById('vatDau').value) / 100 || 0;
         
-        if (vndPerLiter === 0) return 0;
+        if (vndPrice === 0) return 0;
         
-        const heSoQuyDoiL2MT = 1000 / tyTrong;
-        const donGiaDauVND_MT = vndPerLiter * heSoQuyDoiL2MT; 
-        
+        let donGiaDauVND_MT;
+        if (isFO) {
+            donGiaDauVND_MT = vndPrice * 1000; // Đơn giá là VNĐ/kg, 1 MT = 1000kg
+        } else {
+            const heSoQuyDoiL2MT = 1000 / tyTrong;
+            donGiaDauVND_MT = vndPrice * heSoQuyDoiL2MT;
+        }
+
         const giaDauTruocThueUSD = (donGiaDauVND_MT / (1 + vatDau)) / tyGia;
         const phiVCTruocThueUSD = (transportFeeVnd / khoiLuong) / tyGia;
         
@@ -348,6 +400,7 @@
     }
 
     function updateAll() {
+        const isFO = document.getElementById('loaiDau').value === 'FO';
         const giaDau = parseVND(document.getElementById('giaDau').value);
         const phuPhi = parseVND(document.getElementById('phuPhi').value); 
         const tyGia = parseVND(document.getElementById('tyGia').value) || 1;
@@ -356,9 +409,14 @@
         const vatDau = parseFloat(document.getElementById('vatDau').value) / 100 || 0;
         const vatVanChuyen = parseFloat(document.getElementById('vatVanChuyen').value) / 100 || 0;
 
-        const heSoQuyDoiL2MT = 1000 / tyTrong;
-        const donGiaDauVND_MT = giaDau * heSoQuyDoiL2MT; 
-        
+        let donGiaDauVND_MT;
+        if (isFO) {
+            donGiaDauVND_MT = giaDau * 1000; 
+        } else {
+            const heSoQuyDoiL2MT = 1000 / tyTrong;
+            donGiaDauVND_MT = giaDau * heSoQuyDoiL2MT; 
+        }
+
         const giaDauSauThueUSD = donGiaDauVND_MT / tyGia;
         const phiVCSauThueUSD = (phuPhi * (1 + vatVanChuyen) / khoiLuong) / tyGia;
         const tongSauThueUSD = giaDauSauThueUSD + phiVCSauThueUSD;
@@ -397,15 +455,17 @@
                 resCellTruocThue.style.fontWeight = "500";
             } else {
                 resCellSauThue.textContent = formatNumberUS(calcUsdMtSauThue); 
-                resCellSauThue.style.color = "#1d4ed8"; // Màu xanh dương text-blue-700
-                resCellSauThue.style.fontWeight = "700"; // Không in đậm chói, vừa đủ nổi bật
+                resCellSauThue.style.color = "#1d4ed8";
+                resCellSauThue.style.fontWeight = "700";
                 
                 resCellTruocThue.textContent = formatNumberUS(calcUsdMtTruocThue); 
                 resCellTruocThue.style.color = "#059669";
                 resCellTruocThue.style.fontWeight = "700";
             }
         }
-        priceChart.data.labels = labels; priceChart.data.datasets[0].data = data; priceChart.update();
+        priceChart.data.labels = labels; 
+        priceChart.data.datasets[0].data = data; 
+        priceChart.update();
     }
 
     // --- HÀM LẤY TỶ GIÁ VCB VỚI THỜI GIAN CỤ THỂ ---
@@ -469,7 +529,7 @@
     updateClock(); setInterval(updateClock, 1000);
 
     // --- INIT ---
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', updateAll));
+    document.querySelectorAll('input, select').forEach(i => i.addEventListener('input', updateAll));
     updateAll();
 </script>
 </body>
