@@ -1,128 +1,101 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<!-- Trả về viewport chuẩn để kích hoạt tính năng tự động sắp xếp trên Mobile -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aulac Corporation - Vietnam Bunker Pricing Calculator</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
   /* =========================================
-     PHONG CÁCH CHUẨN AULAC (TỐI ƯU MOBILE & DESKTOP)
+     PHONG CÁCH CHUẨN AULAC
      ========================================= */
   * { margin: 0; padding: 0; box-sizing: border-box; }  
-  
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f1f5f9; /* Nền xám nhạt để nổi bật các panel trắng */
+    background: #ffffff;
     color: #1e293b;
     height: 100vh;
-    height: 100dvh;
+    width: 100vw;
     display: flex;
     flex-direction: column;
     overflow: hidden; 
     -webkit-font-smoothing: antialiased;
   }
 
-  /* HEADER & FOOTER CỐ ĐỊNH */
-  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background: #ffffff; border-bottom: 2px solid #e2e8f0; flex-shrink: 0; z-index: 10; }
-  #mode-label { font-size: 14px; font-weight: 800; padding: 6px 12px; border-radius: 50px; background: #eff6ff; color: #113285; border: 1px solid #bfdbfe; text-align: center;}
+  /* HEADER */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 30px; background: #f8fafc; border-bottom: 3px solid #e2e8f0; flex-shrink: 0; }
+  #mode-label { font-size: 18px; font-weight: 800; padding: 6px 20px; border-radius: 50px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); background: #eff6ff; color: #113285; border: 2px solid #bfdbfe; }
   .logo { display: flex; align-items: center; }
-  .logo svg { width: 100px; height: auto; }
-  
-  #footer { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; padding: 10px 15px; font-size: 12px; font-weight: 600; color: #64748b; background: #ffffff; border-top: 2px solid #e2e8f0; flex-shrink: 0; z-index: 10; }
-  #footer-clock { color: #0f172a; font-weight: 700; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; }
+  .logo svg { width: 130px; height: auto; }
 
-  /* VÙNG CHỨA NỘI DUNG (CÓ THỂ CUỘN) */
-  #main-scroll {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    -webkit-overflow-scrolling: touch;
+  /* MAIN AREA */
+  #main {
+    flex: 1; display: flex; position: relative; gap: 20px;
+    overflow: hidden; padding: 15px 30px; 
   }
-
-  .panel {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
-  }
-
-  /* BỐ CỤC LƯỚI CHO DESKTOP (MÀN HÌNH RỘNG > 1000px) */
-  @media (min-width: 1000px) {
-    #topbar { padding: 10px 30px; }
-    #mode-label { font-size: 18px; padding: 6px 20px; border-width: 2px;}
-    .logo svg { width: 130px; }
-    #footer { flex-direction: row; justify-content: space-between; padding: 10px 30px; font-size: 16px; }
-    
-    #main-scroll {
-      flex-direction: row;
-      align-items: flex-start;
-      padding: 20px 30px;
-    }
-    .panel { padding: 20px; }
-    #panel-calc { flex: 1.3; }
-    #panel-data { flex: 1; display: flex; flex-direction: column; gap: 20px;}
-  }
+  /* Cột trái (Calculator) sẽ rộng hơn, Cột phải (Supplier) sẽ thu hẹp lại */
+  #main { display: grid; grid-template-columns: 1.3fr 1fr; }
 
   /* TITLE BẢNG */
   .section-title {
-    font-size: 16px; font-weight: 800; color: #1e293b;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    margin-bottom: 15px; 
+    font-size: 20px; font-weight: 700; color: #334155;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 12px; 
     display: flex; align-items: center;
     justify-content: space-between;
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 8px;
+    flex-shrink: 0;
   }
-  @media (min-width: 1000px) { .section-title { font-size: 18px; } }
 
   /* BẢNG NHÀ CUNG CẤP */
-  .table-wrapper { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
-  table { width: 100%; border-collapse: collapse; min-width: 500px; }
-  thead tr { background: #f8fafc; }
+  table {
+    width: 100%; border-collapse: collapse;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    border-radius: 8px; overflow: hidden;
+    display: table;
+  }
+  thead tr { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); }
   thead th {
-    padding: 10px 8px; text-align: center; vertical-align: middle; 
-    font-weight: 700; font-size: 12px;
-    color: #475569; border-bottom: 2px solid #cbd5e1;
+    padding: 8px 10px; text-align: center; vertical-align: middle; 
+    font-weight: 700; font-size: 14px;
+    color: #0f172a; border-bottom: 4px solid #f59e0b; line-height: 1.3;
   }
   tbody tr:nth-child(even) { background: #f8fafc; }
   tbody tr:nth-child(odd)  { background: #ffffff; }
+  tbody tr:hover { background: #f1f5f9; transition: background 0.2s; }
   tbody td {
-    padding: 8px; text-align: center; border-bottom: 1px solid #e2e8f0;
-    font-size: 14px; font-weight: 600; color: #334155; vertical-align: middle;
+    padding: 6px 10px; text-align: center; border-bottom: 1px solid #e2e8f0;
+    font-size: 18px; font-weight: 600; color: #334155; vertical-align: middle;
   }
 
   /* INPUT TRONG BẢNG */
   .table-input { 
     width: 100%; background: transparent; border: 1px solid transparent; 
-    border-bottom: 1px dashed #cbd5e1; padding: 2px; outline: none; 
+    border-bottom: 1px solid #cbd5e1; padding: 4px; outline: none; 
     transition: all 0.2s; text-align: center; font-size: inherit; font-weight: inherit; color: inherit;
   }
-  .table-input:focus { border-bottom-style: solid; border-bottom-color: #3b82f6; background: #fff; }
+  .table-input:focus { border-bottom-color: #3b82f6; background: #fff; transform: scale(1.02); }
 
-  /* CALCULATOR INPUTS */
-  .calc-input { width: 100%; padding: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; transition: all 0.2s; font-weight: 700; color: #0f172a; font-size: 15px; }
+  /* FOOTER */
+  #footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; font-size: 16px; font-weight: 600; color: #64748b; background: #f8fafc; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
+  #footer-clock { color: #0f172a; font-weight: 700; background: #e2e8f0; padding: 5px 15px; border-radius: 6px; letter-spacing: 1px; }
+
+  /* CỘT TRÁI - CALCULATOR */
+  .calc-panel { display: flex; flex-direction: column; height: 100%; }
+  .calc-input { width: 100%; padding: 8px 12px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; transition: all 0.2s; font-weight: 600; color: #0f172a; font-size: 15px; }
   .calc-input:focus { border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-  .input-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
   
-  /* CỐ ĐỊNH CHIỀU CAO BIỂU ĐỒ */
-  .chart-container { width: 100%; height: 260px; position: relative; margin-top: 10px; }
+  .chart-container { flex: 1; position: relative; width: 100%; min-height: 0; margin-top: 15px; }
 </style>
 </head>
 <body>
 
 <div id="topbar">
-    <div id="mode-label">AULAC CORP - Bunker</div>
+    <div id="mode-label">AULAC CORPORATION - Energy on the move</div>
     <div class="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 51" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="140" height="51" viewBox="0 0 140 51" fill="none">
             <g clip-path="url(#clip0_2221_911)">
                 <mask id="mask0_2221_911" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="109" y="0" width="31" height="12">
                     <path d="M133.761 0.367074C132.65 0.385427 115.958 0.374415 110.774 0.367074C109.929 0.389098 109.249 1.07551 109.249 1.92343V6.94121C109.249 7.77811 109.91 8.45351 110.738 8.49389H125.801C134.614 8.35074 134 11.8305 134 11.8305C134 11.8305 138.063 7.44776 139.202 5.28207C140.324 3.1531 139.901 0.363403 134.062 0.363403C133.963 0.363403 133.86 0.363403 133.757 0.363403" fill="white"></path>
@@ -163,128 +136,124 @@
     </div>
 </div>
 
-<div id="main-scroll">
-  
-  <!-- CỘT BÊN TRÁI: BẢNG TÍNH -->
-  <div id="panel-calc" class="panel">
+<div id="main">
+  <div class="calc-panel" style="flex: 1; padding: 0 15px; border-right: 1px solid #e2e8f0; overflow-y: auto;">
     <div class="section-title">
-        <span>Bảng Tính Giá Dầu (USD/MT)</span>
+        <span>Bảng Tính Giá Dầu Nội Địa & TNTX (USD/MT)</span>
         <i class="fa-solid fa-laptop-code text-blue-600"></i>
     </div>
     
     <div class="grid grid-cols-2 gap-3 mt-2">
-        <div class="col-span-2 mb-1">
-            <label class="input-label">Loại dầu</label>
-            <select id="loaiDau" class="calc-input cursor-pointer bg-blue-50 border-blue-300 text-blue-900 font-bold">
+        <div class="col-span-2 mb-2">
+            <label class="block text-xs font-bold text-blue-800 uppercase mb-1">Loại dầu</label>
+            <select id="loaiDau" class="calc-input cursor-pointer bg-blue-50 border-blue-300 text-blue-900 font-bold" style="font-size: 16px;">
                 <option value="DO" selected>Dầu DO 0.05%S</option>
                 <option value="FO">Dầu FO</option>
             </select>
         </div>
 
         <div>
-            <label id="lblGiaDau" class="input-label">Giá (VNĐ/Lít)</label>
+            <label id="lblGiaDau" class="block text-xs font-bold text-slate-500 uppercase mb-1">Giá dầu (VNĐ/Lít)</label>
             <input type="text" id="giaDau" value="18.560" class="format-number calc-input">
         </div>
         <div>
-            <label id="lblTyTrong" class="input-label">Tỷ trọng (MT/m³)</label>
+            <label id="lblTyTrong" class="block text-xs font-bold text-slate-500 uppercase mb-1">Tỷ trọng (MT/m³ @ OBS)</label>
             <input type="number" step="0.001" id="tyTrong" value="0.975" class="calc-input">
         </div>
         <div>
-            <label class="input-label">Phụ phí VC (VNĐ)</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Phụ phí VC (VNĐ)</label>
             <input type="text" id="phuPhi" value="20.000.000" class="format-number calc-input">
         </div>
         <div>
-            <label class="input-label">Khối lượng (MT)</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Khối lượng (MT)</label>
             <input type="number" id="khoiLuong" value="200" class="calc-input">
         </div>
         
         <div class="col-span-2">
-            <label class="input-label">Tỷ giá VCB (USD/VNĐ)</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tỷ giá Vietcombank (USD/VNĐ)</label>
             <div class="flex gap-2">
                 <input type="text" id="tyGia" value="26.462" class="format-number calc-input text-blue-700">
-                <button onclick="fetchOnlineExchangeRate()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg font-bold shadow-sm transition-colors flex items-center justify-center">
-                    <i class="fa-solid fa-rotate"></i>
+                <button onclick="fetchOnlineExchangeRate()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg font-bold shadow-sm transition-colors whitespace-nowrap">
+                    <i class="fa-solid fa-rotate mr-1"></i>
                 </button>
             </div>
-            <p class="text-[10px] mt-1 italic text-slate-500 font-semibold" id="tyGiaStatus">Tự nhập hoặc bấm nút để lấy tỷ giá mới nhất.</p>
+            <p class="text-[10px] mt-1 italic text-slate-500 font-semibold" id="tyGiaStatus">Tự nhập hoặc bấm nút để lấy tỷ giá Bán mới nhất.</p>
         </div>
 
         <div>
-            <label class="input-label">VAT Dầu (%)</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">VAT Dầu (%)</label>
             <input type="number" id="vatDau" value="0" class="calc-input">
         </div>
         <div>
-            <label class="input-label">VAT VC (%)</label>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">VAT VC (%)</label>
             <input type="number" id="vatVanChuyen" value="8" class="calc-input">
         </div>
     </div>
 
-    <!-- KẾT QUẢ TÍNH TOÁN -->
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between gap-3">
+    <div class="mt-auto grid grid-cols-2 gap-4" style="margin-top: 20px;">
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-slate-500 font-semibold text-sm">Tiền dầu (sau thuế):</span>
-                    <span id="resGiaDauSauThue" class="font-bold text-slate-700 text-base">-</span>
+                    <span class="text-slate-500 font-semibold" style="font-size: 16px;">Tiền dầu (sau thuế):</span>
+                    <span id="resGiaDauSauThue" class="font-bold text-slate-700" style="font-size: 18px;">-</span>
                 </div>
-                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                    <span class="text-slate-500 font-semibold text-sm">Phí VC (sau thuế):</span>
-                    <span id="resPhiVCSauThue" class="font-bold text-slate-700 text-base">-</span>
+                <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
+                    <span class="text-slate-500 font-semibold" style="font-size: 16px;">Phí vận chuyển (sau thuế):</span>
+                    <span id="resPhiVCSauThue" class="font-bold text-slate-700" style="font-size: 18px;">-</span>
                 </div>
             </div>
             <div class="flex flex-col">
-                <span class="text-slate-900 font-black uppercase text-xs mb-1">Tổng Giá Sau Thuế</span>
-                <span id="resTongSauThue" class="font-black text-blue-700 text-3xl leading-none">-</span>
+                <span class="text-slate-900 font-black uppercase mb-1" style="font-size: 15px;">Tổng Giá Sau Thuế (USD/MT)</span>
+                <span id="resTongSauThue" class="font-black text-blue-700 leading-none" style="font-size: 36px;">-</span>
             </div>
         </div>
 
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm flex flex-col justify-center relative overflow-hidden min-h-[110px]">
-            <i class="fa-solid fa-check-circle absolute -right-4 -bottom-4 text-7xl text-emerald-200 opacity-40"></i>
-            <span class="text-emerald-800 font-black uppercase text-xs mb-2 relative z-10">Tổng Giá Trước Thuế<br>(USD/MT)</span>
-            <span id="resChuan" class="font-black text-emerald-600 text-4xl leading-none relative z-10">-</span>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm flex flex-col justify-center relative overflow-hidden">
+            <i class="fa-solid fa-check-circle absolute -right-2 -top-2 text-6xl text-emerald-200 opacity-40"></i>
+            <span class="text-emerald-800 font-black uppercase mb-3 relative z-10" style="font-size: 15px;">Tổng Giá Trước Thuế<br>(USD/MT)</span>
+            <span id="resChuan" class="font-black text-emerald-600 leading-none relative z-10" style="font-size: 42px;">-</span>
         </div>
     </div>
   </div>
 
-  <!-- CỘT BÊN PHẢI: BẢNG SO SÁNH & BIỂU ĐỒ -->
-  <div id="panel-data" class="panel">
+  <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0 15px;">
     <div class="section-title">
-        <span>So Sánh Nhà Cung Cấp</span>
+        <span>Tổng Quan Các Nhà Cung Cấp</span>
         <i class="fa-solid fa-chart-column text-fuchsia-600"></i>
     </div>
     
-    <div class="table-wrapper">
+    <div style="overflow-x: auto; flex-shrink: 0;">
         <table>
             <thead>
                 <tr>
                     <th>NHÀ CUNG CẤP</th>
-                    <th id="thGiaDau" style="width: 100px;">DO 0.05%S<br><span style="font-size:10px;font-weight:normal">(VNĐ/Lít)</span></th>
-                    <th style="width: 90px;">PHỤ PHÍ VC<br><span style="font-size:10px;font-weight:normal">(VNĐ)</span></th>
-                    <th style="width: 90px;">TRƯỚC THUẾ<br><span style="font-size:10px;font-weight:normal">(USD/MT)</span></th>
-                    <th style="width: 90px;">SAU THUẾ<br><span style="font-size:10px;font-weight:normal">(USD/MT)</span></th>
+                    <th id="thGiaDau" style="width: 120px;">DO 0.05%S<br><span style="font-size:11px;font-weight:normal">(VNĐ/Lít)</span></th>
+                    <th style="width: 120px;">PHỤ PHÍ VC<br><span style="font-size:11px;font-weight:normal">(VNĐ)</span></th>
+                    <th style="width: 110px;">TRƯỚC THUẾ<br><span style="font-size:11px;font-weight:normal">(USD/MT)</span></th>
+                    <th style="width: 110px;">SAU THUẾ<br><span style="font-size:11px;font-weight:normal">(USD/MT)</span></th>
                 </tr>
             </thead>
             <tbody id="supplierTableBody">
                 <tr>
-                    <td><input type="text" id="name1" class="table-input font-bold text-slate-800" value="Nam Côn Sơn"></td>
+                    <td><input type="text" id="name1" class="table-input" style="font-weight: 700; color: #0f172a;" value="Nam Côn Sơn"></td>
                     <td><input type="text" id="pr1" class="format-number table-input text-blue-600" value="27.795"></td>
                     <td><input type="text" id="fee1" class="format-number table-input" value="20.000.000"></td>
-                    <td id="res_truoc1" class="font-bold text-emerald-600">-</td>
-                    <td id="res1" class="font-bold text-blue-700">-</td>
+                    <td id="res_truoc1" style="font-weight: 700; font-size: 17px; color: #059669;">-</td>
+                    <td id="res1" style="font-weight: 700; font-size: 18px; color: #1d4ed8;">-</td>
                 </tr>
                 <tr>
-                    <td><input type="text" id="name2" class="table-input font-bold text-slate-800" value="Đại Minh"></td>
+                    <td><input type="text" id="name2" class="table-input" style="font-weight: 700; color: #0f172a;" value="Đại Minh"></td>
                     <td><input type="text" id="pr2" class="format-number table-input text-blue-600" value="19.036"></td>
                     <td><input type="text" id="fee2" class="format-number table-input" value="20.000.000"></td>
-                    <td id="res_truoc2" class="font-bold text-emerald-600">-</td>
-                    <td id="res2" class="font-bold text-blue-700">-</td>
+                    <td id="res_truoc2" style="font-weight: 700; font-size: 17px; color: #059669;">-</td>
+                    <td id="res2" style="font-weight: 700; font-size: 18px; color: #1d4ed8;">-</td>
                 </tr>
                 <tr>
-                    <td><input type="text" id="name3" class="table-input font-bold text-slate-800" value="Nhà CC Khác"></td>
+                    <td><input type="text" id="name3" class="table-input" style="font-weight: 700; color: #0f172a;" value="Nhà cung cấp khác"></td>
                     <td><input type="text" id="pr3" class="format-number table-input text-blue-600" value="" placeholder="0"></td>
                     <td><input type="text" id="fee3" class="format-number table-input" value="" placeholder="0"></td>
-                    <td id="res_truoc3" class="text-slate-400 italic font-medium">-</td>
-                    <td id="res3" class="text-slate-400 italic font-medium">-</td>
+                    <td id="res_truoc3" style="color: #94a3b8; font-style: italic; font-weight: 500; font-size: 16px;">-</td>
+                    <td id="res3" style="color: #94a3b8; font-style: italic; font-weight: 500; font-size: 16px;">-</td>
                 </tr>
             </tbody>
         </table>
@@ -339,15 +308,15 @@
                 data: [27795, 19036, 0],
                 backgroundColor: ['rgba(15, 118, 191, 0.85)', 'rgba(69, 190, 238, 0.85)', 'rgba(148, 163, 184, 0.4)'],
                 borderColor: ['#0F79BF', '#45BEEE', '#94a3b8'],
-                borderWidth: 1, borderRadius: 4, barThickness: 40
+                borderWidth: 1, borderRadius: 4, barThickness: 160
             }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' }, ticks: { font: { weight: '600', size: 10 } } },
-                x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 } } }
+                y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' }, ticks: { font: { weight: '600' } } },
+                x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 13 } } }
             }
         }
     });
@@ -361,16 +330,20 @@
         const tyTrongInput = document.getElementById('tyTrong');
 
         if (type === 'DO') {
-            lblGiaDau.textContent = 'Giá (VNĐ/Lít)';
-            lblTyTrong.textContent = 'Tỷ trọng (MT/m³)';
-            thGiaDau.innerHTML = 'DO 0.05%S<br><span style="font-size:10px;font-weight:normal">(VNĐ/Lít)</span>';
+            lblGiaDau.textContent = 'Giá dầu (VNĐ/Lít)';
+            lblTyTrong.textContent = 'Tỷ trọng (MT/m³ @ OBS)';
+            thGiaDau.innerHTML = 'DO 0.05%S<br><span style="font-size:11px;font-weight:normal">(VNĐ/Lít)</span>';
             priceChart.data.datasets[0].label = 'Giá DO (VNĐ/Lít)';
+            
+            // Đặt lại tỷ trọng mẫu nếu đang là của FO
             if(parseFloat(tyTrongInput.value) > 100) tyTrongInput.value = '0.975';
         } else {
-            lblGiaDau.textContent = 'Giá (VNĐ/kg)';
-            lblTyTrong.textContent = 'Tỷ trọng (kg/m³)';
-            thGiaDau.innerHTML = 'DẦU FO<br><span style="font-size:10px;font-weight:normal">(VNĐ/kg)</span>';
+            lblGiaDau.textContent = 'Giá dầu (VNĐ/kg)';
+            lblTyTrong.textContent = 'Tỷ trọng (kg/m³ @ OBS)';
+            thGiaDau.innerHTML = 'DẦU FO<br><span style="font-size:11px;font-weight:normal">(VNĐ/kg)</span>';
             priceChart.data.datasets[0].label = 'Giá FO (VNĐ/kg)';
+            
+            // Đặt lại tỷ trọng mẫu nếu đang là của DO
             if(parseFloat(tyTrongInput.value) < 2) tyTrongInput.value = '991.0';
         }
         
@@ -390,7 +363,7 @@
         
         let donGiaDauVND_MT;
         if (isFO) {
-            donGiaDauVND_MT = vndPrice * 1000; 
+            donGiaDauVND_MT = vndPrice * 1000; // Đơn giá là VNĐ/kg, 1 MT = 1000kg
         } else {
             const heSoQuyDoiL2MT = 1000 / tyTrong;
             donGiaDauVND_MT = vndPrice * heSoQuyDoiL2MT;
@@ -398,6 +371,7 @@
 
         const giaDauSauThueUSD = donGiaDauVND_MT / tyGia;
         const phiVCSauThueUSD = (transportFeeVnd * (1 + vatVanChuyen) / khoiLuong) / tyGia;
+        
         return giaDauSauThueUSD + phiVCSauThueUSD;
     }
 
@@ -413,7 +387,7 @@
         
         let donGiaDauVND_MT;
         if (isFO) {
-            donGiaDauVND_MT = vndPrice * 1000; 
+            donGiaDauVND_MT = vndPrice * 1000; // Đơn giá là VNĐ/kg, 1 MT = 1000kg
         } else {
             const heSoQuyDoiL2MT = 1000 / tyTrong;
             donGiaDauVND_MT = vndPrice * heSoQuyDoiL2MT;
@@ -421,6 +395,7 @@
 
         const giaDauTruocThueUSD = (donGiaDauVND_MT / (1 + vatDau)) / tyGia;
         const phiVCTruocThueUSD = (transportFeeVnd / khoiLuong) / tyGia;
+        
         return giaDauTruocThueUSD + phiVCTruocThueUSD;
     }
 
@@ -435,8 +410,12 @@
         const vatVanChuyen = parseFloat(document.getElementById('vatVanChuyen').value) / 100 || 0;
 
         let donGiaDauVND_MT;
-        if (isFO) { donGiaDauVND_MT = giaDau * 1000; } 
-        else { donGiaDauVND_MT = giaDau * (1000 / tyTrong); }
+        if (isFO) {
+            donGiaDauVND_MT = giaDau * 1000; 
+        } else {
+            const heSoQuyDoiL2MT = 1000 / tyTrong;
+            donGiaDauVND_MT = giaDau * heSoQuyDoiL2MT; 
+        }
 
         const giaDauSauThueUSD = donGiaDauVND_MT / tyGia;
         const phiVCSauThueUSD = (phuPhi * (1 + vatVanChuyen) / khoiLuong) / tyGia;
@@ -468,14 +447,20 @@
             
             if (pr === 0) {
                 resCellSauThue.textContent = "N/A"; 
-                resCellSauThue.className = "text-slate-400 italic font-medium";
+                resCellSauThue.style.color = "#94a3b8";
+                resCellSauThue.style.fontWeight = "500";
+                
                 resCellTruocThue.textContent = "N/A"; 
-                resCellTruocThue.className = "text-slate-400 italic font-medium";
+                resCellTruocThue.style.color = "#94a3b8";
+                resCellTruocThue.style.fontWeight = "500";
             } else {
                 resCellSauThue.textContent = formatNumberUS(calcUsdMtSauThue); 
-                resCellSauThue.className = "font-bold text-blue-700";
+                resCellSauThue.style.color = "#1d4ed8";
+                resCellSauThue.style.fontWeight = "700";
+                
                 resCellTruocThue.textContent = formatNumberUS(calcUsdMtTruocThue); 
-                resCellTruocThue.className = "font-bold text-emerald-600";
+                resCellTruocThue.style.color = "#059669";
+                resCellTruocThue.style.fontWeight = "700";
             }
         }
         priceChart.data.labels = labels; 
@@ -513,6 +498,7 @@
                     if (exrates[i].getAttribute("CurrencyCode") === "USD") {
                         const rate = Math.round(parseFloat(exrates[i].getAttribute("Sell").replace(/,/g, '')));
                         
+                        // Lấy thời gian hiện tại
                         const n = new Date();
                         const timeStr = n.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                         const d = String(n.getDate()).padStart(2, '0');
@@ -522,6 +508,7 @@
                         
                         document.getElementById('tyGia').value = formatVND(rate);
                         
+                        // Hiển thị thông báo mới
                         s.innerHTML = `<i class="fa-solid fa-check text-emerald-500"></i> Đã cập nhật tỷ giá VCB lúc ${timeStr} ngày ${dateStr}`;
                         s.className = "text-[10px] mt-1 font-bold text-emerald-600";
                         
