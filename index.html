@@ -1,27 +1,28 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=1100">
 <title>Aulac Corporation - Vietnam Bunker Pricing Calculator</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
   /* =========================================
-     PHONG CÁCH CHUẨN AULAC
+     PHONG CÁCH CHUẨN AULAC (TỐI ƯU MOBILE)
      ========================================= */
   * { margin: 0; padding: 0; box-sizing: border-box; }  
+  
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: #ffffff;
     color: #1e293b;
     height: 100vh;
-    width: 100vw;
+    height: 100dvh; /* Khắc phục triệt để lỗi Chrome che mất footer */
+    width: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden; 
+    overflow: hidden; /* Khóa cuộn trang để dùng như 1 App */
     -webkit-font-smoothing: antialiased;
   }
 
@@ -33,11 +34,9 @@
 
   /* MAIN AREA */
   #main {
-    flex: 1; display: flex; position: relative; gap: 20px;
+    flex: 1; display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; position: relative;
     overflow: hidden; padding: 15px 30px; 
   }
-  /* Cột trái (Calculator) sẽ rộng hơn, Cột phải (Supplier) sẽ thu hẹp lại */
-  #main { display: grid; grid-template-columns: 1.3fr 1fr; }
 
   /* TITLE BẢNG */
   .section-title {
@@ -83,7 +82,7 @@
   #footer-clock { color: #0f172a; font-weight: 700; background: #e2e8f0; padding: 5px 15px; border-radius: 6px; letter-spacing: 1px; }
 
   /* CỘT TRÁI - CALCULATOR */
-  .calc-panel { display: flex; flex-direction: column; height: 100%; }
+  .calc-panel { display: flex; flex-direction: column; height: 100%; padding-right: 15px; border-right: 1px solid #e2e8f0; overflow-y: auto; }
   .calc-input { width: 100%; padding: 8px 12px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; transition: all 0.2s; font-weight: 600; color: #0f172a; font-size: 15px; }
   .calc-input:focus { border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
   
@@ -137,7 +136,7 @@
 </div>
 
 <div id="main">
-  <div class="calc-panel" style="flex: 1; padding: 0 15px; border-right: 1px solid #e2e8f0; overflow-y: auto;">
+  <div class="calc-panel">
     <div class="section-title">
         <span>Bảng Tính Giá Dầu Nội Địa & TNTX (USD/MT)</span>
         <i class="fa-solid fa-laptop-code text-blue-600"></i>
@@ -198,12 +197,12 @@
                     <span id="resGiaDauSauThue" class="font-bold text-slate-700" style="font-size: 18px;">-</span>
                 </div>
                 <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
-                    <span class="text-slate-500 font-semibold" style="font-size: 16px;">Phí vận chuyển (sau thuế):</span>
+                    <span class="text-slate-500 font-semibold" style="font-size: 16px;">Phí VC (sau thuế):</span>
                     <span id="resPhiVCSauThue" class="font-bold text-slate-700" style="font-size: 18px;">-</span>
                 </div>
             </div>
             <div class="flex flex-col">
-                <span class="text-slate-900 font-black uppercase mb-1" style="font-size: 15px;">Tổng Giá Sau Thuế (USD/MT)</span>
+                <span class="text-slate-900 font-black uppercase mb-1" style="font-size: 15px;">Tổng Giá Sau Thuế</span>
                 <span id="resTongSauThue" class="font-black text-blue-700 leading-none" style="font-size: 36px;">-</span>
             </div>
         </div>
@@ -216,9 +215,9 @@
     </div>
   </div>
 
-  <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0 15px;">
+  <div style="display: flex; flex-direction: column; overflow: hidden; height: 100%;">
     <div class="section-title">
-        <span>Tổng Quan Các Nhà Cung Cấp</span>
+        <span>Tổng Quan Nhà Cung Cấp</span>
         <i class="fa-solid fa-chart-column text-fuchsia-600"></i>
     </div>
     
